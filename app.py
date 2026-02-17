@@ -8,7 +8,7 @@ from collections import Counter
 # Add your priority names here. They will be picked every day.
 FIXED_DAILY_NAMES = ["محمود سمير"] 
 
-# --- إعدادات الملفات ---
+# --- File Handling Logic ---
 DB_FILE = "data.json"
 
 def load_data():
@@ -28,32 +28,47 @@ def save_data():
     with open(DB_FILE, "w", encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# --- تهيئة الحالة (Session State) ---
+# --- Initialize Session State ---
 if 'initialized' not in st.session_state:
     saved_data = load_data()
     st.session_state.names_list = saved_data.get("names_list", [])
     st.session_state.history = saved_data.get("history", [])
     st.session_state.initialized = True
 
-# --- تصميم الصفحة وتحسين الألوان ---
+# --- Page Layout & Theme ---
 st.set_page_config(page_title="Ramadan Spiritual Jar", page_icon="🌙")
 
 st.markdown("""
     <style>
-    /* تحسين شكل الأزرار */
-    .stButton>button { width: 100%; border-radius: 8px; height: 3em; font-weight: bold; }
-    
-    /* إصلاح ألوان الـ Metric لتكون واضحة */
-    [data-testid="stMetricValue"] { color: #007bff !important; font-weight: bold; }
-    [data-testid="stMetricLabel"] { color: #31333F !important; }
-    [data-testid="stMetric"] { 
-        background-color: #ffffff; 
-        padding: 15px; 
-        border-radius: 10px; 
-        border: 1px solid #e0e0e0;
+    /* Main button styling */
+    .stButton>button { 
+        width: 100%; 
+        border-radius: 8px; 
+        height: 3em; 
+        font-weight: bold; 
     }
     
-    /* تنسيق قسم الكوسة */
+    /* STYLING THE METRIC TO MATCH THE SIDEBAR SECTIONS */
+    [data-testid="stMetric"] {
+        background-color: #262730; /* Matches the dark sidebar background */
+        border: 1px solid #464855; /* Subtle border like the text area */
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 10px;
+    }
+    
+    [data-testid="stMetricValue"] {
+        color: #007bff !important; /* Bright blue for the number */
+        font-weight: bold;
+        font-size: 2rem !important;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        color: #ffffff !important; /* White text for the label to match sidebar text */
+        font-size: 0.9rem !important;
+    }
+    
+    /* Kousa section styling in the main area */
     .kousa-section {
         background-color: #fff9e6;
         padding: 20px;
@@ -61,6 +76,7 @@ st.markdown("""
         border: 1px dashed #ffcc00;
         margin-bottom: 20px;
         text-align: center;
+        color: #000000;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -68,13 +84,13 @@ st.markdown("""
 st.title("🌙 Ramadan Spiritual Jar")
 st.subheader("برطمان دعوات رمضان")
 
-# --- قسم الكوسة (Hard-coded display) ---
+# --- Kousa Section (Hard-coded display) ---
 st.markdown('<div class="kousa-section">', unsafe_allow_html=True)
 st.markdown("### 🌟 نظام الكوسة (أسماء ثابتة يومياً)")
 st.markdown(f"**{' ، '.join(FIXED_DAILY_NAMES)}**")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# --- القائمة الجانبية (Sidebar) ---
+# --- Sidebar: Management ---
 with st.sidebar:
     st.header("📋 الإدارة")
     input_text = st.text_area("أضف أسماء من التعليقات:", height=150, placeholder="ضع الأسماء هنا، اسم في كل سطر...")
@@ -89,7 +105,7 @@ with st.sidebar:
 
     st.divider()
     
-    # فحص التكرار
+    # Duplicate Checker
     st.subheader("🔍 فحص المكرر")
     counts = Counter(st.session_state.names_list)
     duplicates = [name for name, count in counts.items() if count > 1]
@@ -102,7 +118,7 @@ with st.sidebar:
 
     st.divider()
     
-    # إعادة الضبط
+    # Reset Logic
     st.subheader("⚠️ منطقة الخطر")
     confirm = st.checkbox("تأكيد رغبتي في مسح البيانات")
     if st.button("🗑️ مسح البرطمان والأرشيف"):
@@ -114,12 +130,12 @@ with st.sidebar:
             st.rerun()
 
     st.divider()
+    # The Counter now styled to match the dark sidebar theme
     st.metric(label="عدد الأسماء داخل البرطمان", value=len(st.session_state.names_list))
 
-# --- سحب الأسماء ---
+# --- Selection Logic ---
 st.write("### 📿 سحب اليوم")
 
-# FIX: Dynamic logic for the number input to prevent the ValueAboveMaxError
 jar_count = len(st.session_state.names_list)
 max_val = max(0, jar_count)
 default_val = 1 if jar_count > 0 else 0
@@ -134,14 +150,14 @@ num_random = st.number_input(
 if st.button("🕌 ابدأ السحب"):
     results = []
     
-    # 1. تنفيذ نظام الكوسة أولاً
+    # 1. Process Fixed Names
     for name in FIXED_DAILY_NAMES:
         results.append({"name": name, "type": "fixed"})
         st.session_state.history.append(name)
         if name in st.session_state.names_list:
             st.session_state.names_list.remove(name)
 
-    # 2. السحب العشوائي
+    # 2. Process Random Draw
     if num_random > 0 and st.session_state.names_list:
         actual_random_count = min(num_random, len(st.session_state.names_list))
         random_picks = random.sample(st.session_state.names_list, actual_random_count)
@@ -150,7 +166,7 @@ if st.button("🕌 ابدأ السحب"):
             st.session_state.names_list.remove(name)
             st.session_state.history.append(name)
 
-    # 3. عرض النتائج
+    # 3. Show Results
     if results:
         st.balloons()
         st.markdown("#### أسماء اليوم المستجاب دعاؤهم بإذن الله:")
@@ -161,9 +177,9 @@ if st.button("🕌 ابدأ السحب"):
                 st.success(f"🎲 **{item['name']}** (سحب عشوائي)")
         save_data()
     else:
-        st.error("البرطمان فاضي ومافيش أسماء ثابتة!")
+        st.error("البرطمان فاضي!")
 
-# --- الأرشيف ---
+# --- History ---
 st.divider()
 if st.checkbox("📜 عرض أرشيف الدعوات"):
     if st.session_state.history:
