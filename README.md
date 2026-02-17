@@ -1,4 +1,4 @@
-# 🎯 Random Name Picker
+# 🎯 Ramadan Name Picker
 
 A lightweight, interactive web application built with **Python** and **Streamlit**. This tool allows users to manage a list of names, select a specific number of random winners, and track history—all while automatically removing picked names from the active pool.
 
@@ -19,5 +19,5 @@ A lightweight, interactive web application built with **Python** and **Streamlit
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/your-username/random-name-picker.git](https://github.com/your-username/random-name-picker.git)
+   git clone [https://github.com/moabdrabou/RamadanNamePicker.git](https://github.com/moabdrabou/RamadanNamePicker.git)
    cd random-name-picker
