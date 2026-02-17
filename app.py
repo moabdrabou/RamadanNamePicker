@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import json
 import os
+from collections import Counter
 
 # --- File Handling Logic ---
 DB_FILE = "data.json"
@@ -21,71 +22,88 @@ def save_data():
         json.dump(data, f)
 
 # --- Initialize Session State ---
-# Load from file if session state is empty
 if 'initialized' not in st.session_state:
     saved_data = load_data()
     st.session_state.names_list = saved_data["names_list"]
     st.session_state.history = saved_data["history"]
     st.session_state.initialized = True
 
-# --- Page Layout & Styling ---
-st.set_page_config(page_title="Ramadan Random Name Picker", page_icon="📅")
+# --- Page Layout ---
+st.set_page_config(page_title="Ramadan Spiritual Jar", page_icon="🌙")
 
-st.markdown("""
-    <style>
-    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #007bff; color: white; }
-    .stButton>button:hover { background-color: #0056b3; color: white; }
-    </style>
-    """, unsafe_allow_html=True)
+st.title("🌙 Ramadan Spiritual Jar")
+st.subheader("برطمان دعوات رمضان")
 
-st.title("📅 Ramadan Random Name Picker")
-
-# --- Sidebar ---
+# --- Sidebar: Management ---
 with st.sidebar:
     st.header("📋 Management")
-    input_text = st.text_area("Add new names (one per line):", height=150)
+    input_text = st.text_area("Add names from comments:", height=150, help="One name per line")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("➕ Add Names"):
-            new_entries = [n.strip() for n in input_text.split('\n') if n.strip()]
-            st.session_state.names_list.extend(new_entries)
-            save_data() # Save to disk
-            st.rerun()
-
-    with col2:
-        if st.button("🗑️ Reset All"):
-            st.session_state.names_list = []
-            st.session_state.history = []
-            save_data() # Save empty state to disk
-            st.rerun()
+    if st.button("➕ Add to Jar"):
+        new_entries = [n.strip() for n in input_text.split('\n') if n.strip()]
+        st.session_state.names_list.extend(new_entries)
+        save_data()
+        st.rerun()
 
     st.divider()
-    st.metric("Names Left", len(st.session_state.names_list))
-
-# --- Main Logic ---
-if st.session_state.names_list:
-    num_to_pick = st.number_input("How many names today?", min_value=1, max_value=len(st.session_state.names_list), value=1)
     
-    if st.button("🎲 Pick Today's Names"):
+    # --- DUPLICATE CHECKER SECTION ---
+    st.subheader("🔍 Duplicate Check")
+    # Count occurrences of each name
+    counts = Counter(st.session_state.names_list)
+    duplicates = [name for name, count in counts.items() if count > 1]
+    
+    if duplicates:
+        st.warning(f"Found {len(duplicates)} duplicate names.")
+        with st.expander("View Duplicates"):
+            for d in duplicates:
+                st.write(f"• {d} ({counts[d]} times)")
+        
+        if st.button("✨ Clean Duplicates"):
+            # Keep order but remove duplicates
+            seen = set()
+            st.session_state.names_list = [x for x in st.session_state.names_list if not (x in seen or seen.add(x))]
+            save_data()
+            st.success("List cleaned!")
+            st.rerun()
+    else:
+        st.success("No duplicates found!")
+
+    st.divider()
+    
+    if st.button("🗑️ Reset Everything"):
+        if st.checkbox("Confirm Reset"):
+            st.session_state.names_list = []
+            st.session_state.history = []
+            save_data()
+            st.rerun()
+
+    st.metric("Total Names in Jar", len(st.session_state.names_list))
+
+# --- Main App Logic ---
+if st.session_state.names_list:
+    st.write("### 📿 Daily Iftar Draw")
+    num_to_pick = st.number_input("How many names to draw today?", min_value=1, max_value=len(st.session_state.names_list), value=1)
+    
+    if st.button("🕌 Draw Names"):
         selected = random.sample(st.session_state.names_list, num_to_pick)
         
-        st.subheader("Selected for today:")
+        st.balloons() # Festive effect for the draw
+        st.markdown("#### The names chosen for today's Duaa:")
         for name in selected:
             st.success(f"⭐ **{name}**")
             st.session_state.names_list.remove(name)
             st.session_state.history.append(name)
         
-        save_data() # Save the updated lists to disk
+        save_data()
 else:
-    st.info("The list is empty! Please add names in the sidebar.")
+    st.info("The jar is empty! Add names from your Facebook/Instagram post comments in the sidebar.")
 
 # --- History ---
 st.divider()
-if st.checkbox("Show Picked History"):
+if st.checkbox("📜 Show History (People we prayed for)"):
     if st.session_state.history:
-        # Show newest at the top
         for h_name in reversed(st.session_state.history):
-            st.text(f"• {h_name}")
+            st.text(f"✅ {h_name}")
     else:
-        st.caption("No history recorded yet.")
+        st.caption("No names have been drawn yet.")
