@@ -13,5 +13,7 @@ This project is a digital transformation of the traditional "Ramadan Jar." Inste
 - **Automatic Removal:** Ensures every participant gets their turn by removing them from the "Jar" once picked.
 
 ## 🚀 Setup & Usage
-1. **Install Requirements:** ```bash
+1. **Install Requirements:**
+2. ```bash
    pip install streamlit
+   ```
