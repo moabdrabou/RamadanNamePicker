@@ -68,16 +68,16 @@ st.subheader("برطمان دعوات رمضان")
 
 # --- Sidebar: Management ---
 with st.sidebar:
-    st.header("📋 Management")
+    st.header("📋 الإدارة")
     
-    input_text = st.text_area("Add names from comments:", height=150, placeholder="Paste names here...")
+    input_text = st.text_area("أضف أسماء جديدة (اسم في كل سطر):", height=150, placeholder="ألصق الأسماء هنا...")
     
-    if st.button("➕ Add to Jar"):
+    if st.button("➕ إضافة للبرطمان"):
         new_entries = [n.strip() for n in input_text.split('\n') if n.strip()]
         if new_entries:
             st.session_state.names_list.extend(new_entries)
             save_data()
-            st.success(f"Added {len(new_entries)} names!")
+            st.success(f"تم إضافة {len(new_entries)} اسم!")
             st.rerun()
 
     st.divider()
@@ -88,50 +88,50 @@ with st.sidebar:
     duplicates = [name for name, count in counts.items() if count > 1]
     
     if duplicates:
-        st.warning(f"Found {len(duplicates)} duplicates.")
-        with st.expander("View Duplicates"):
+        st.warning(f"لقيت {len(duplicates)} أسماء مكررة.")
+        with st.expander("عرض الاسماء المكررة"):
             for d in duplicates:
                 st.write(f"• {d} ({counts[d]} times)")
         
-        if st.button("✨ Clean Duplicates"):
+        if st.button("✨ تنظيف الأسماء المكررة"):
             seen = set()
             st.session_state.names_list = [x for x in st.session_state.names_list if not (x in seen or seen.add(x))]
             save_data()
             st.rerun()
     else:
-        st.caption("No duplicates found.")
+        st.caption("مفيش اي اسماء متكررة يا كبير")
 
     st.divider()
     
     # Reset Logic
-    st.subheader("⚠️ Danger Zone")
-    confirm_reset = st.checkbox("Confirm I want to wipe all data")
-    if st.button("🗑️ Reset Everything"):
+    st.subheader("⚠️ خطر")
+    confirm_reset = st.checkbox("تأكيد مسح كل البيانات")
+    if st.button("🗑️ مسح البرطمان والارشيف"):
         if confirm_reset:
             st.session_state.names_list = []
             st.session_state.history = []
             if os.path.exists(DB_FILE):
                 os.remove(DB_FILE)
             save_data()
-            st.success("Jar and History wiped!")
+            st.success("سافر عند القمر")
             st.rerun()
         else:
-            st.error("Check the confirmation box first!")
+            st.error("علم ع التأكيد الاول, مانا مش همسح وخلاص")
 
     st.divider()
     # The Counter that was invisible
-    st.metric(label="Names currently in Jar", value=len(st.session_state.names_list))
+    st.metric(label="عدد الأسماء في البرطمان", value=len(st.session_state.names_list))
 
 # --- Main App Logic ---
 if st.session_state.names_list:
-    st.write("### 📿 Daily Iftar Draw")
-    num_to_pick = st.number_input("How many names to draw?", min_value=1, max_value=len(st.session_state.names_list), value=1)
+    st.write("### 📿 سحب دعوات اليوم")
+    num_to_pick = st.number_input("اختار عدد اللي هندعيلهم انهردة", min_value=1, max_value=len(st.session_state.names_list), value=1)
     
-    if st.button("🕌 Draw Names"):
+    if st.button("🕌 اسحب الأسماء الآن"):
         selected = random.sample(st.session_state.names_list, num_to_pick)
         
         st.balloons()
-        st.markdown("#### Today's Selected Names:")
+        st.markdown("#### أسماء اللي هندعيلهم انهردة:")
         for name in selected:
             st.success(f"⭐ **{name}**")
             st.session_state.names_list.remove(name)
@@ -139,14 +139,14 @@ if st.session_state.names_list:
         
         save_data()
 else:
-    st.info("The jar is empty! Add names in the sidebar to get started.")
+    st.info("البرطمان فاضي, ضيف الاسماء من القائمة اللي ع الشمال")
 
 # --- History ---
 st.divider()
-if st.checkbox("📜 Show History (People we prayed for)"):
+if st.checkbox("📜 عرض أرشيف الدعوات"):
     if st.session_state.history:
         # Using a list for cleaner Arabic display
         for name in reversed(st.session_state.history):
             st.markdown(f"- {name}")
     else:
-        st.caption("No names drawn yet.")
+        st.caption("لسه مابدأناش سحب!")
