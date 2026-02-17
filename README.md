@@ -1,5 +1,6 @@
 # 🌙 Ramadan Spiritual Jar (Digital Name Picker)
-عُدنا بعروض رمضان المميزة 
+✨عُدنا بعروض رمضان المميزة 
+
 This project is a digital transformation of the traditional "Ramadan Jar." Instead of physical paper slips, this app manages a list of participants who commented on the Ramadan post. Every day at Iftar, a name (or multiple names) is drawn for a special prayer (Duaa).
 
 ## 🕌 The Ramadan Initiative
