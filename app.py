@@ -29,7 +29,7 @@ if 'initialized' not in st.session_state:
     st.session_state.initialized = True
 
 # --- Page Layout & Styling ---
-st.set_page_config(page_title="Ramadan Name Picker", page_icon="📅")
+st.set_page_config(page_title="Ramadan Random Name Picker", page_icon="📅")
 
 st.markdown("""
     <style>
@@ -38,7 +38,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("📅 Ramadan Random Picker")
+st.title("📅 Ramadan Random Name Picker")
 
 # --- Sidebar ---
 with st.sidebar:
