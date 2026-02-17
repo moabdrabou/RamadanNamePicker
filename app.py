@@ -22,7 +22,7 @@ st.markdown("""
         color: white;
     }
     </style>
-    """, unsafe_allow_status_safe=True)
+    """, unsafe_allow_html=True)
 
 # --- Initialize Session State ---
 # This ensures data persists while the app is open
