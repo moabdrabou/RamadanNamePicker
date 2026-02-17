@@ -14,6 +14,6 @@ This project is a digital transformation of the traditional "Ramadan Jar." Inste
 
 ## 🚀 Setup & Usage
 1. **Install Requirements:**
-2. ```bash
+   ```bash
    pip install streamlit
    ```
