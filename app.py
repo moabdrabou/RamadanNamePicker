@@ -34,11 +34,32 @@ if 'initialized' not in st.session_state:
 # --- Page Layout & Theme ---
 st.set_page_config(page_title="Ramadan Spiritual Jar", page_icon="🌙")
 
-# Custom CSS for a clean look
+# FIXED CSS: Improved visibility for metrics and buttons
 st.markdown("""
     <style>
-    .stButton>button { width: 100%; border-radius: 8px; height: 3em; }
-    .stMetric { background-color: #f0f2f6; padding: 10px; border-radius: 10px; }
+    /* Main button styling */
+    .stButton>button { 
+        width: 100%; 
+        border-radius: 8px; 
+        height: 3em; 
+    }
+    
+    /* FIX: Metric visibility */
+    [data-testid="stMetricValue"] {
+        color: #007bff !important; /* Force a clear blue color for the number */
+        font-weight: bold;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #31333F !important; /* Force a dark color for the label */
+    }
+    
+    /* Background for the metric box to make it stand out */
+    [data-testid="stMetric"] {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -49,8 +70,7 @@ st.subheader("برطمان دعوات رمضان")
 with st.sidebar:
     st.header("📋 Management")
     
-    # Input area
-    input_text = st.text_area("Add names from comments:", height=150, help="Paste names here, one per line.")
+    input_text = st.text_area("Add names from comments:", height=150, placeholder="Paste names here...")
     
     if st.button("➕ Add to Jar"):
         new_entries = [n.strip() for n in input_text.split('\n') if n.strip()]
@@ -91,7 +111,7 @@ with st.sidebar:
             st.session_state.names_list = []
             st.session_state.history = []
             if os.path.exists(DB_FILE):
-                os.remove(DB_FILE) # Clean the physical file too
+                os.remove(DB_FILE)
             save_data()
             st.success("Jar and History wiped!")
             st.rerun()
@@ -99,7 +119,8 @@ with st.sidebar:
             st.error("Check the confirmation box first!")
 
     st.divider()
-    st.metric("Names in Jar", len(st.session_state.names_list))
+    # The Counter that was invisible
+    st.metric(label="Names currently in Jar", value=len(st.session_state.names_list))
 
 # --- Main App Logic ---
 if st.session_state.names_list:
@@ -124,7 +145,8 @@ else:
 st.divider()
 if st.checkbox("📜 Show History (People we prayed for)"):
     if st.session_state.history:
-        # Show in a table for easier reading
-        st.table(st.session_state.history[::-1])
+        # Using a list for cleaner Arabic display
+        for name in reversed(st.session_state.history):
+            st.markdown(f"- {name}")
     else:
         st.caption("No names drawn yet.")
