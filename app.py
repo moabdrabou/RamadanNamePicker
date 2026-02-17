@@ -38,7 +38,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("📅 Daily Random Picker")
+st.title("📅 Ramadan Random Picker")
 
 # --- Sidebar ---
 with st.sidebar:
