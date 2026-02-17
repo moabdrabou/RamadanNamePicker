@@ -4,6 +4,10 @@ import json
 import os
 from collections import Counter
 
+# --- HARD-CODED KOUSA NAMES ---
+# Add your priority names here. They will be picked every day.
+FIXED_DAILY_NAMES = ["محمود سمير", "رضوي عبدربه", "عبير فهيد"] 
+
 # --- إعدادات الملفات ---
 DB_FILE = "data.json"
 
@@ -39,7 +43,7 @@ st.markdown("""
     /* تحسين شكل الأزرار */
     .stButton>button { width: 100%; border-radius: 8px; height: 3em; font-weight: bold; }
     
-    /* إصلاح ألوان الـ Metric لتكون واضحة (علاج المشكلة في الصورة) */
+    /* إصلاح ألوان الـ Metric لتكون واضحة */
     [data-testid="stMetricValue"] { color: #007bff !important; font-weight: bold; }
     [data-testid="stMetricLabel"] { color: #31333F !important; }
     [data-testid="stMetric"] { 
@@ -56,6 +60,7 @@ st.markdown("""
         border-radius: 10px;
         border: 1px dashed #ffcc00;
         margin-bottom: 20px;
+        text-align: center;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -63,20 +68,12 @@ st.markdown("""
 st.title("🌙 Ramadan Spiritual Jar")
 st.subheader("برطمان دعوات رمضان")
 
-# --- قسم الكوسة (مباشرة تحت العنوان) ---
+# --- قسم الكوسة (Hard-coded display) ---
 st.markdown('<div class="kousa-section">', unsafe_allow_html=True)
 st.markdown("### 🌟 نظام الكوسة (أسماء ثابتة يومياً)")
-col_a, col_b, col_c = st.columns(3)
-with col_a:
-    f1 = st.text_input("الاسم الثابت 1", key="k1", placeholder="مثلاً: والدي")
-with col_b:
-    f2 = st.text_input("الاسم الثابت 2", key="k2", placeholder="مثلاً: والدتي")
-with col_c:
-    f3 = st.text_input("الاسم الثابت 3", key="k3", placeholder="مثلاً: اسمي")
+# Display the hard-coded names as bold text
+st.markdown(f"**{' ، '.join(FIXED_DAILY_NAMES)}**")
 st.markdown('</div>', unsafe_allow_html=True)
-
-# تحويل الأسماء الثابتة لقائمة
-fixed_winners = [n.strip() for n in [f1, f2, f3] if n.strip()]
 
 # --- القائمة الجانبية (Sidebar) ---
 with st.sidebar:
@@ -122,22 +119,24 @@ with st.sidebar:
 
 # --- سحب الأسماء ---
 st.write("### 📿 سحب اليوم")
-if st.session_state.names_list or fixed_winners:
-    num_random = st.number_input("كم اسم عشوائي نختار اليوم؟", min_value=0, max_value=len(st.session_state.names_list), value=1)
+if st.session_state.names_list or FIXED_DAILY_NAMES:
+    num_random = st.number_input("كم اسم عشوائي نختار اليوم؟", min_value=0, max_value=max(0, len(st.session_state.names_list)), value=1)
     
     if st.button("🕌 ابدأ السحب"):
         results = []
         
-        # 1. تنفيذ نظام الكوسة أولاً
-        for name in fixed_winners:
+        # 1. تنفيذ نظام الكوسة أولاً (Fixed names)
+        for name in FIXED_DAILY_NAMES:
             results.append({"name": name, "type": "fixed"})
             st.session_state.history.append(name)
+            # Remove from jar if they happen to be there to avoid double draws
             if name in st.session_state.names_list:
                 st.session_state.names_list.remove(name)
 
         # 2. السحب العشوائي
         if num_random > 0 and st.session_state.names_list:
-            random_picks = random.sample(st.session_state.names_list, num_random)
+            actual_random_count = min(num_random, len(st.session_state.names_list))
+            random_picks = random.sample(st.session_state.names_list, actual_random_count)
             for name in random_picks:
                 results.append({"name": name, "type": "random"})
                 st.session_state.names_list.remove(name)
@@ -154,7 +153,7 @@ if st.session_state.names_list or fixed_winners:
                     st.success(f"🎲 **{item['name']}** (سحب عشوائي)")
             save_data()
 else:
-    st.info("البرطمان فارغ! أضف أسماء من القائمة الجانبية أو أدخل أسماء ثابتة.")
+    st.info("البرطمان فارغ!")
 
 # --- الأرشيف ---
 st.divider()
