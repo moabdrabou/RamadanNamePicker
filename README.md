@@ -1,23 +1,17 @@
-# 🎯 Ramadan Name Picker
+# 🌙 Ramadan Spiritual Jar (Digital Name Picker)
+عُدنا بعروض رمضان المميزة 
+This project is a digital transformation of the traditional "Ramadan Jar." Instead of physical paper slips, this app manages a list of participants who commented on the Ramadan post. Every day at Iftar, a name (or multiple names) is drawn for a special prayer (Duaa).
 
-A lightweight, interactive web application built with **Python** and **Streamlit**. This tool allows users to manage a list of names, select a specific number of random winners, and track history—all while automatically removing picked names from the active pool.
-
+## 🕌 The Ramadan Initiative
+> "From now until the first day of Ramadan, I will collect the names of everyone who comments on the post. Every day during Ramadan at Iftar time, I will pull a name and offer a heartfelt prayer (Duaa) for them. If the number of participants is large, I will pull two or three names daily."
+>
+> **رمضان كريم**
 ## ✨ Features
-- **Dynamic List Management:** Paste names directly into the sidebar.
-- **Custom Pick Counts:** Choose exactly how many names to draw at once.
-- **Smart Depletion:** Once a name is picked, it is removed from the active list to prevent duplicates.
-- **Session History:** Toggle a history view to see everyone who has been picked so far.
-- **One-Click Reset:** A "Delete All" feature to wipe the current list and history instantly.
-- **Clean UI:** Responsive design that works on desktop and mobile browsers.
+- **Persistent Storage:** Uses `data.json` to ensure names gathered before Ramadan stay safe until the month begins.
+- **Daily Draw:** Choose to pick 1, 2, or 3 names depending on the total count.
+- **Duaa History:** Keeps track of everyone who has been prayed for throughout the month.
+- **Automatic Removal:** Ensures every participant gets their turn by removing them from the "Jar" once picked.
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Python 3.8+
-- pip (Python package manager)
-
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/moabdrabou/RamadanNamePicker.git](https://github.com/moabdrabou/RamadanNamePicker.git)
-   cd random-name-picker
+## 🚀 Setup & Usage
+1. **Install Requirements:** ```bash
+   pip install streamlit
