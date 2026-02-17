@@ -4,7 +4,7 @@ import json
 import os
 from collections import Counter
 
-# --- إعدادات الملفات ---
+# --- File Handling Logic ---
 DB_FILE = "data.json"
 
 def load_data():
@@ -24,118 +24,129 @@ def save_data():
     with open(DB_FILE, "w", encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# --- تهيئة الحالة (Session State) ---
+# --- Initialize Session State ---
 if 'initialized' not in st.session_state:
     saved_data = load_data()
     st.session_state.names_list = saved_data.get("names_list", [])
     st.session_state.history = saved_data.get("history", [])
     st.session_state.initialized = True
 
-# --- تصميم الصفحة ---
+# --- Page Layout & Theme ---
 st.set_page_config(page_title="Ramadan Spiritual Jar", page_icon="🌙")
 
+# FIXED CSS: Improved visibility for metrics and buttons
 st.markdown("""
     <style>
-    .stButton>button { width: 100%; border-radius: 8px; height: 3em; font-weight: bold; }
-    [data-testid="stMetricValue"] { color: #28a745 !important; font-weight: bold; }
-    [data-testid="stMetricLabel"] { color: #31333F !important; }
-    [data-testid="stMetric"] { background-color: #ffffff; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; }
+    /* Main button styling */
+    .stButton>button { 
+        width: 100%; 
+        border-radius: 8px; 
+        height: 3em; 
+    }
+    
+    /* FIX: Metric visibility */
+    [data-testid="stMetricValue"] {
+        color: #007bff !important; /* Force a clear blue color for the number */
+        font-weight: bold;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #31333F !important; /* Force a dark color for the label */
+    }
+    
+    /* Background for the metric box to make it stand out */
+    [data-testid="stMetric"] {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("🌙 Ramadan Spiritual Jar")
 st.subheader("برطمان دعوات رمضان")
 
-# --- القائمة الجانبية (Sidebar) ---
+# --- Sidebar: Management ---
 with st.sidebar:
-    st.header("📋 الإدارة")
+    st.header("📋 Management")
     
-    input_text = st.text_area("أضف أسماء جديدة (اسم في كل سطر):", height=100)
+    input_text = st.text_area("Add names from comments:", height=150, placeholder="Paste names here...")
     
-    if st.button("➕ إضافة للبرطمان"):
+    if st.button("➕ Add to Jar"):
         new_entries = [n.strip() for n in input_text.split('\n') if n.strip()]
         if new_entries:
             st.session_state.names_list.extend(new_entries)
             save_data()
-            st.success(f"تم إضافة {len(new_entries)} اسم!")
+            st.success(f"Added {len(new_entries)} names!")
             st.rerun()
 
     st.divider()
-
-    # --- نظام الكوسة (أسماء ثابتة يومياً) ---
-    st.subheader("🌟 نظام الكوسة (أسماء ثابتة)")
-    st.write("الأسماء دي هتطلع كل يوم (True Condition) بره القرعة العشوائية.")
-    fixed_name_1 = st.text_input("الاسم الأول الثابت", key="fixed_1")
-    fixed_name_2 = st.text_input("الاسم الثاني الثابت", key="fixed_2")
-    fixed_name_3 = st.text_input("الاسم الثالث الثابت", key="fixed_3")
     
-    # تحويل الأسماء الثابتة لقائمة (تجاهل الفراغات)
-    fixed_winners = [n.strip() for n in [fixed_name_1, fixed_name_2, fixed_name_3] if n.strip()]
-
-    st.divider()
+    # Duplicate Checker
+    st.subheader("🔍 Duplicate Check")
+    counts = Counter(st.session_state.names_list)
+    duplicates = [name for name, count in counts.items() if count > 1]
     
-    # حذف التكرار
-    if st.button("✨ تنظيف الأسماء المكررة"):
-        st.session_state.names_list = list(dict.fromkeys(st.session_state.names_list))
-        save_data()
-        st.rerun()
-
-    # إعادة ضبط
-    st.subheader("⚠️ خطر")
-    if st.checkbox("تأكيد مسح كل البيانات"):
-        if st.button("🗑️ مسح البرطمان والارشيف"):
-            st.session_state.names_list = []
-            st.session_state.history = []
-            if os.path.exists(DB_FILE): os.remove(DB_FILE)
+    if duplicates:
+        st.warning(f"Found {len(duplicates)} duplicates.")
+        with st.expander("View Duplicates"):
+            for d in duplicates:
+                st.write(f"• {d} ({counts[d]} times)")
+        
+        if st.button("✨ Clean Duplicates"):
+            seen = set()
+            st.session_state.names_list = [x for x in st.session_state.names_list if not (x in seen or seen.add(x))]
             save_data()
             st.rerun()
+    else:
+        st.caption("No duplicates found.")
 
     st.divider()
-    st.metric(label="عدد الأسماء في البرطمان", value=len(st.session_state.names_list))
-
-# --- المنطق الأساسي للسحب ---
-st.write("### 📿 سحب دعوات اليوم")
-
-if st.button("🕌 اسحب الأسماء الآن"):
-    results = []
     
-    # 1. نظام الكوسة (True Condition): أضف الأسماء الثابتة أولاً دائماً
-    for name in fixed_winners:
-        results.append({"name": name, "type": "fixed"})
-        st.session_state.history.append(name)
-        # إذا كان الاسم موجود في البرطمان، احذفه عشان ميتكررش
-        if name in st.session_state.names_list:
-            st.session_state.names_list.remove(name)
+    # Reset Logic
+    st.subheader("⚠️ Danger Zone")
+    confirm_reset = st.checkbox("Confirm I want to wipe all data")
+    if st.button("🗑️ Reset Everything"):
+        if confirm_reset:
+            st.session_state.names_list = []
+            st.session_state.history = []
+            if os.path.exists(DB_FILE):
+                os.remove(DB_FILE)
+            save_data()
+            st.success("Jar and History wiped!")
+            st.rerun()
+        else:
+            st.error("Check the confirmation box first!")
 
-    # 2. نظام القرعة العشوائية: كمل العدد لـ 3 لو الأسماء الثابتة أقل من 3
-    needed_random = 3 - len(results)
-    if needed_random > 0 and st.session_state.names_list:
-        actual_random_count = min(needed_random, len(st.session_state.names_list))
-        random_picks = random.sample(st.session_state.names_list, actual_random_count)
+    st.divider()
+    # The Counter that was invisible
+    st.metric(label="Names currently in Jar", value=len(st.session_state.names_list))
+
+# --- Main App Logic ---
+if st.session_state.names_list:
+    st.write("### 📿 Daily Iftar Draw")
+    num_to_pick = st.number_input("How many names to draw?", min_value=1, max_value=len(st.session_state.names_list), value=1)
+    
+    if st.button("🕌 Draw Names"):
+        selected = random.sample(st.session_state.names_list, num_to_pick)
         
-        for name in random_picks:
-            results.append({"name": name, "type": "random"})
+        st.balloons()
+        st.markdown("#### Today's Selected Names:")
+        for name in selected:
+            st.success(f"⭐ **{name}**")
             st.session_state.names_list.remove(name)
             st.session_state.history.append(name)
-
-    # 3. عرض النتائج
-    if results:
-        st.balloons()
-        st.markdown("#### أسماء النهاردة اللي هندعيلهم:")
-        for res in results:
-            if res["type"] == "fixed":
-                st.info(f"✨ **{res['name']}** (دعوة ثابتة يومياً)")
-            else:
-                st.success(f"🌙 **{res['name']}** (سحب عشوائي من البرطمان)")
+        
         save_data()
-    else:
-        st.error("البرطمان فاضي ومافيش أسماء ثابتة!")
+else:
+    st.info("The jar is empty! Add names in the sidebar to get started.")
 
-# --- الأرشيف ---
+# --- History ---
 st.divider()
-if st.checkbox("📜 عرض أرشيف الدعوات"):
+if st.checkbox("📜 Show History (People we prayed for)"):
     if st.session_state.history:
+        # Using a list for cleaner Arabic display
         for name in reversed(st.session_state.history):
             st.markdown(f"- {name}")
     else:
-        st.caption("لسه مابدأناش سحب!")
+        st.caption("No names drawn yet.")
