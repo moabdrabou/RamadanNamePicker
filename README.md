@@ -11,9 +11,3 @@ This project is a digital transformation of the traditional "Ramadan Jar." Inste
 - **Daily Draw:** Choose to pick 1, 2, or 3 names depending on the total count.
 - **Duaa History:** Keeps track of everyone who has been prayed for throughout the month.
 - **Automatic Removal:** Ensures every participant gets their turn by removing them from the "Jar" once picked.
-
-## 🚀 Setup & Usage
-1. **Install Requirements:**
-```bash
-   pip install streamlit
-```
