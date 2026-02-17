@@ -6,7 +6,7 @@ from collections import Counter
 
 # --- HARD-CODED KOUSA NAMES ---
 # Add your priority names here. They will be picked every day.
-FIXED_DAILY_NAMES = ["محمود سمير", "رضوي عبدربه", "عبير فهيد"] 
+FIXED_DAILY_NAMES = ["Omar", "Family Member 1", "Family Member 2"] 
 
 # --- إعدادات الملفات ---
 DB_FILE = "data.json"
@@ -71,7 +71,6 @@ st.subheader("برطمان دعوات رمضان")
 # --- قسم الكوسة (Hard-coded display) ---
 st.markdown('<div class="kousa-section">', unsafe_allow_html=True)
 st.markdown("### 🌟 نظام الكوسة (أسماء ثابتة يومياً)")
-# Display the hard-coded names as bold text
 st.markdown(f"**{' ، '.join(FIXED_DAILY_NAMES)}**")
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -119,41 +118,50 @@ with st.sidebar:
 
 # --- سحب الأسماء ---
 st.write("### 📿 سحب اليوم")
-if st.session_state.names_list or FIXED_DAILY_NAMES:
-    num_random = st.number_input("كم اسم عشوائي نختار اليوم؟", min_value=0, max_value=max(0, len(st.session_state.names_list)), value=1)
+
+# FIX: Dynamic logic for the number input to prevent the ValueAboveMaxError
+jar_count = len(st.session_state.names_list)
+max_val = max(0, jar_count)
+default_val = 1 if jar_count > 0 else 0
+
+num_random = st.number_input(
+    "كم اسم عشوائي نختار اليوم؟", 
+    min_value=0, 
+    max_value=max_val, 
+    value=default_val
+)
+
+if st.button("🕌 ابدأ السحب"):
+    results = []
     
-    if st.button("🕌 ابدأ السحب"):
-        results = []
-        
-        # 1. تنفيذ نظام الكوسة أولاً (Fixed names)
-        for name in FIXED_DAILY_NAMES:
-            results.append({"name": name, "type": "fixed"})
+    # 1. تنفيذ نظام الكوسة أولاً
+    for name in FIXED_DAILY_NAMES:
+        results.append({"name": name, "type": "fixed"})
+        st.session_state.history.append(name)
+        if name in st.session_state.names_list:
+            st.session_state.names_list.remove(name)
+
+    # 2. السحب العشوائي
+    if num_random > 0 and st.session_state.names_list:
+        actual_random_count = min(num_random, len(st.session_state.names_list))
+        random_picks = random.sample(st.session_state.names_list, actual_random_count)
+        for name in random_picks:
+            results.append({"name": name, "type": "random"})
+            st.session_state.names_list.remove(name)
             st.session_state.history.append(name)
-            # Remove from jar if they happen to be there to avoid double draws
-            if name in st.session_state.names_list:
-                st.session_state.names_list.remove(name)
 
-        # 2. السحب العشوائي
-        if num_random > 0 and st.session_state.names_list:
-            actual_random_count = min(num_random, len(st.session_state.names_list))
-            random_picks = random.sample(st.session_state.names_list, actual_random_count)
-            for name in random_picks:
-                results.append({"name": name, "type": "random"})
-                st.session_state.names_list.remove(name)
-                st.session_state.history.append(name)
-
-        # 3. عرض النتائج
-        if results:
-            st.balloons()
-            st.markdown("#### أسماء اليوم المستجاب دعاؤهم بإذن الله:")
-            for item in results:
-                if item["type"] == "fixed":
-                    st.info(f"🌟 **{item['name']}** (دعوة ثابتة)")
-                else:
-                    st.success(f"🎲 **{item['name']}** (سحب عشوائي)")
-            save_data()
-else:
-    st.info("البرطمان فارغ!")
+    # 3. عرض النتائج
+    if results:
+        st.balloons()
+        st.markdown("#### أسماء اليوم المستجاب دعاؤهم بإذن الله:")
+        for item in results:
+            if item["type"] == "fixed":
+                st.info(f"🌟 **{item['name']}** (دعوة ثابتة)")
+            else:
+                st.success(f"🎲 **{item['name']}** (سحب عشوائي)")
+        save_data()
+    else:
+        st.error("البرطمان فاضي ومافيش أسماء ثابتة!")
 
 # --- الأرشيف ---
 st.divider()
