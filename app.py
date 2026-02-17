@@ -6,7 +6,7 @@ from collections import Counter
 
 # --- HARD-CODED KOUSA NAMES ---
 # Add your priority names here. They will be picked every day.
-FIXED_DAILY_NAMES = ["Omar", "Family Member 1", "Family Member 2"] 
+FIXED_DAILY_NAMES = ["محمود سمير"] 
 
 # --- إعدادات الملفات ---
 DB_FILE = "data.json"
